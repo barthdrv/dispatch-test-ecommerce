@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Checkout — Corner Shop{% endblock %}
+{% block content %}
+  <h1>Checkout</h1>
+
+  <div class="cart-layout">
+    <form class="checkout-form" action="{{ url_for('checkout.checkout') }}" method="post" novalidate>
+      <fieldset>
+        <legend>Where should it go?</legend>
+        {% for field, label in [
+            ('name', 'Full name'), ('email', 'Email'), ('address', 'Street address'),
+            ('city', 'City'), ('postcode', 'Postcode'), ('country', 'Country')] %}
+          <p class="field {{ 'has-error' if errors.get(field) }}">
+            <label for="{{ field }}">{{ label }}</label>
+            <input id="{{ field }}" name="{{ field }}"
+                   type="{{ 'email' if field == 'email' else 'text' }}"
+                   value="{{ customer.get(field, '') }}">
+            {% if errors.get(field) %}<span class="error">{{ errors[field] }}</span>{% endif %}
+          </p>
+        {% endfor %}
+      </fieldset>
+
+      <p class="note">This is a demo. No payment details are collected and nothing is charged.</p>
+      <button type="submit" class="btn btn-primary">Place order</button>
+    </form>
+
+    <aside class="summary-box">
+      <h2>Order summary</h2>
+      <ul class="mini-items">
+        {% for line in lines %}
+          <li>
+            <span>{{ line['quantity'] }} &times; {{ line['product']['name'] }}</span>
+            <span>{{ money(line['line_cents']) }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+      {% include "_totals.html" %}
+    </aside>
+  </div>
+{% endblock %}

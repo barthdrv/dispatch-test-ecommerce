@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Corner Shop{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="{{ url_for('catalog.index') }}">Corner&nbsp;Shop</a>
+      <form class="search" action="{{ url_for('catalog.index') }}" method="get" role="search">
+        <input type="search" name="q" placeholder="Search products" value="{{ query or '' }}" aria-label="Search products">
+        <button type="submit">Search</button>
+      </form>
+      <a class="cart-link" href="{{ url_for('cart.show') }}">
+        Cart <span class="badge">{{ cart_count() }}</span>
+      </a>
+    </div>
+  </header>
+
+  <main class="wrap">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul class="flashes">
+          {% for category, message in messages %}
+            <li class="flash flash-{{ category }}">{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>Corner Shop is a demo storefront. No orders are actually fulfilled.</p>
+    </div>
+  </footer>
+
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Order {{ order['number'] }} — Corner Shop{% endblock %}
+{% block content %}
+  <section class="confirmation">
+    <h1>Thanks, {{ order['name'].split()[0] }}.</h1>
+    <p>Order <strong>{{ order['number'] }}</strong> is confirmed. A receipt is on its way to {{ order['email'] }}.</p>
+
+    <table class="line-items">
+      <thead><tr><th scope="col">Item</th><th scope="col">Qty</th><th scope="col">Total</th></tr></thead>
+      <tbody>
+        {% for item in items %}
+          <tr>
+            <th scope="row">{{ item['name'] }} <span class="unit">{{ item['sku'] }}</span></th>
+            <td>{{ item['quantity'] }}</td>
+            <td class="price">{{ money(item['unit_cents'] * item['quantity']) }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    {% set totals = {
+        'subtotal_cents': order['subtotal_cents'],
+        'shipping_cents': order['shipping_cents'],
+        'tax_cents': order['tax_cents'],
+        'total_cents': order['total_cents'] } %}
+    {% include "_totals.html" %}
+
+    <address>
+      {{ order['address'] }}<br>
+      {{ order['city'] }} {{ order['postcode'] }}<br>
+      {{ order['country'] }}
+    </address>
+
+    <a class="btn" href="{{ url_for('catalog.index') }}">Back to the shop</a>
+  </section>
+{% endblock %}

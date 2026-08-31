@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+  <section class="hero">
+    <h1>Well-made things for the desk, the kitchen and the trail.</h1>
+    <p>A small catalog, restocked when it runs out.</p>
+  </section>
+
+  <nav class="filters" aria-label="Categories">
+    <a class="chip {{ 'is-active' if not active_category }}" href="{{ url_for('catalog.index', q=query) }}">All</a>
+    {% for category in categories %}
+      <a class="chip {{ 'is-active' if active_category == category['slug'] }}"
+         href="{{ url_for('catalog.index', category=category['slug'], q=query) }}">{{ category['name'] }}</a>
+    {% endfor %}
+  </nav>
+
+  {% if query %}
+    <p class="result-count">{{ products|length }} result{{ '' if products|length == 1 else 's' }} for &ldquo;{{ query }}&rdquo;</p>
+  {% endif %}
+
+  {% if products %}
+    <ul class="grid">
+      {% for product in products %}
+        <li class="card">
+          <a href="{{ url_for('catalog.product', slug=product['slug']) }}">
+            <span class="thumb" aria-hidden="true">{{ product['image'] }}</span>
+            <h2>{{ product['name'] }}</h2>
+            <p class="summary">{{ product['summary'] }}</p>
+            <p class="price">
+              {{ money(product['price_cents']) }}
+              {% if product['stock'] == 0 %}<span class="tag tag-out">Sold out</span>{% endif %}
+            </p>
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="empty">Nothing matched. <a href="{{ url_for('catalog.index') }}">Show everything</a>.</p>
+  {% endif %}
+{% endblock %}

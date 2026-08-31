@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Not found — Corner Shop{% endblock %}
+{% block content %}
+  <section class="empty">
+    <h1>We couldn&rsquo;t find that.</h1>
+    <p>The page or product you asked for isn&rsquo;t here.</p>
+    <a class="btn" href="{{ url_for('catalog.index') }}">Back to the shop</a>
+  </section>
+{% endblock %}

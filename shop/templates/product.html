@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}{{ product['name'] }} — Corner Shop{% endblock %}
+{% block content %}
+  <p class="crumbs">
+    <a href="{{ url_for('catalog.index') }}">Shop</a> /
+    <a href="{{ url_for('catalog.index', category=product['category_slug']) }}">{{ product['category_name'] }}</a>
+  </p>
+
+  <article class="detail">
+    <div class="detail-image" aria-hidden="true">{{ product['image'] }}</div>
+
+    <div class="detail-body">
+      <h1>{{ product['name'] }}</h1>
+      <p class="price price-lg">{{ money(product['price_cents']) }}</p>
+      <p class="summary">{{ product['summary'] }}</p>
+      <p>{{ product['description'] }}</p>
+
+      <p class="stock">
+        {% if product['stock'] == 0 %}
+          <span class="tag tag-out">Sold out</span>
+        {% elif product['stock'] < 10 %}
+          <span class="tag tag-low">Only {{ product['stock'] }} left</span>
+        {% else %}
+          <span class="tag tag-in">In stock</span>
+        {% endif %}
+        <span class="sku">SKU {{ product['sku'] }}</span>
+      </p>
+
+      <form class="add-form" action="{{ url_for('cart.add') }}" method="post">
+        <input type="hidden" name="slug" value="{{ product['slug'] }}">
+        <label for="quantity">Qty</label>
+        <input id="quantity" type="number" name="quantity" value="1" min="1" max="99"
+               {{ 'disabled' if product['stock'] == 0 }}>
+        <button type="submit" class="btn" {{ 'disabled' if product['stock'] == 0 }}>Add to cart</button>
+      </form>
+    </div>
+  </article>
+
+  {% if related %}
+    <section class="related">
+      <h2>More from {{ product['category_name'] }}</h2>
+      <ul class="grid">
+        {% for item in related %}
+          <li class="card">
+            <a href="{{ url_for('catalog.product', slug=item['slug']) }}">
+              <span class="thumb" aria-hidden="true">{{ item['image'] }}</span>
+              <h3>{{ item['name'] }}</h3>
+              <p class="price">{{ money(item['price_cents']) }}</p>
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+  {% endif %}
+{% endblock %}

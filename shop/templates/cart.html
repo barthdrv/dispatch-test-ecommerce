@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Your cart — Corner Shop{% endblock %}
+{% block content %}
+  <h1>Your cart</h1>
+
+  {% if not lines %}
+    <p class="empty">Your cart is empty. <a href="{{ url_for('catalog.index') }}">Start shopping</a>.</p>
+  {% else %}
+    <div class="cart-layout">
+      <table class="line-items">
+        <thead>
+          <tr><th scope="col">Item</th><th scope="col">Qty</th><th scope="col">Total</th><th></th></tr>
+        </thead>
+        <tbody>
+          {% for line in lines %}
+            <tr>
+              <th scope="row">
+                <a href="{{ url_for('catalog.product', slug=line['product']['slug']) }}">{{ line['product']['name'] }}</a>
+                <span class="unit">{{ money(line['product']['price_cents']) }} each</span>
+                {% if not line['in_stock'] %}
+                  <span class="tag tag-out">Only {{ line['product']['stock'] }} in stock</span>
+                {% endif %}
+              </th>
+              <td>
+                <form action="{{ url_for('cart.update') }}" method="post" class="qty-form">
+                  <input type="hidden" name="product_id" value="{{ line['product']['id'] }}">
+                  <input type="number" name="quantity" value="{{ line['quantity'] }}" min="0" max="99"
+                         aria-label="Quantity for {{ line['product']['name'] }}">
+                  <button type="submit" class="btn btn-quiet">Update</button>
+                </form>
+              </td>
+              <td class="price">{{ money(line['line_cents']) }}</td>
+              <td>
+                <form action="{{ url_for('cart.remove') }}" method="post">
+                  <input type="hidden" name="product_id" value="{{ line['product']['id'] }}">
+                  <button type="submit" class="btn btn-link">Remove</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <aside class="summary-box">
+        {% include "_totals.html" %}
+        <a class="btn btn-primary" href="{{ url_for('checkout.checkout') }}">Checkout</a>
+        <a class="btn btn-link" href="{{ url_for('catalog.index') }}">Keep shopping</a>
+      </aside>
+    </div>
+  {% endif %}
+{% endblock %}

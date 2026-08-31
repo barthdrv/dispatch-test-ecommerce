@@ -1,0 +1,9 @@
+<dl class="totals">
+  <div><dt>Subtotal</dt><dd>{{ money(totals['subtotal_cents']) }}</dd></div>
+  <div>
+    <dt>Shipping</dt>
+    <dd>{{ 'Free' if totals['shipping_cents'] == 0 else money(totals['shipping_cents']) }}</dd>
+  </div>
+  <div><dt>Tax</dt><dd>{{ money(totals['tax_cents']) }}</dd></div>
+  <div class="grand"><dt>Total</dt><dd>{{ money(totals['total_cents']) }}</dd></div>
+</dl>
