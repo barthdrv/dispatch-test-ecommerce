@@ -7,21 +7,34 @@
 
   {% set sort_param = sort if sort != 'name' else none %}
   <nav class="filters" aria-label="Categories">
-    <a class="chip {{ 'is-active' if not active_category }}" href="{{ url_for('catalog.index', q=query, sort=sort_param) }}">All</a>
+    <a class="chip {{ 'is-active' if not active_category }}" href="{{ url_for('catalog.index', q=query, origin=active_origin, sort=sort_param) }}">All</a>
     {% for category in categories %}
       <a class="chip {{ 'is-active' if active_category == category['slug'] }}"
-         href="{{ url_for('catalog.index', category=category['slug'], q=query, sort=sort_param) }}">{{ category['name'] }}</a>
+         href="{{ url_for('catalog.index', category=category['slug'], q=query, origin=active_origin, sort=sort_param) }}">{{ category['name'] }}</a>
     {% endfor %}
   </nav>
 
-  <nav class="filters sorts" aria-label="Sort">
-    <span class="sorts-label">Sort by</span>
-    {% for key, label in sort_options %}
-      <a class="chip {{ 'is-active' if sort == key }}"
-         {% if sort == key %}aria-current="true"{% endif %}
-         href="{{ url_for('catalog.index', category=active_category, q=query, sort=(key if key != 'name' else none)) }}">{{ label }}</a>
+  <nav class="filters origin-filters" aria-label="Made in">
+    <span class="filters-label">Made in</span>
+    <a class="chip {{ 'is-active' if not active_origin }}" href="{{ url_for('catalog.index', category=active_category, q=query, sort=sort_param) }}">All</a>
+    {% for origin in origins %}
+      <a class="chip {{ 'is-active' if active_origin == origin['code'] }}"
+         href="{{ url_for('catalog.index', category=active_category, q=query, origin=origin['code'], sort=sort_param) }}">{{ origin['name'] }}</a>
     {% endfor %}
   </nav>
+
+  <form class="filters sorts" method="get">
+    <label class="filters-label" for="catalog-sort">Sort by</label>
+    {% if active_category %}<input type="hidden" name="category" value="{{ active_category }}">{% endif %}
+    {% if query %}<input type="hidden" name="q" value="{{ query }}">{% endif %}
+    {% if active_origin %}<input type="hidden" name="origin" value="{{ active_origin }}">{% endif %}
+    <select id="catalog-sort" name="sort" data-auto-submit>
+      {% for key, label in sort_options %}
+        <option value="{{ key }}" {{ 'selected' if sort == key }}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <button class="btn btn-quiet" type="submit">Sort</button>
+  </form>
 
   {% if query %}
     <p class="result-count">{{ products|length }} result{{ '' if products|length == 1 else 's' }} for &ldquo;{{ query }}&rdquo;</p>
@@ -40,6 +53,9 @@
               {% if product['stock'] == 0 %}<span class="tag tag-out">Sold out</span>{% endif %}
             </p>
           </a>
+          {% if product['origin_code'] %}
+            <p class="card-origin">Made in <a href="{{ url_for('catalog.index', category=active_category, q=query, origin=product['origin_code'], sort=sort_param) }}">{{ product['origin_name'] }}</a></p>
+          {% endif %}
         </li>
       {% endfor %}
     </ul>

@@ -4,7 +4,8 @@ from .db import get_db
 PRODUCT_COLUMNS = """
     p.id, p.sku, p.slug, p.name, p.summary, p.description,
     p.price_cents, p.stock, p.image,
-    c.slug AS category_slug, c.name AS category_name
+    c.slug AS category_slug, c.name AS category_name,
+    o.code AS origin_code, o.name AS origin_name, o.region AS origin_region
 """
 
 
@@ -14,6 +15,7 @@ DEFAULT_SORT = "name"
 # table ever reach SQL; the untrusted parameter is used solely as a lookup key.
 SORT_ORDERS = {
     "name": "p.name",
+    "origin": "o.region IS NULL, o.region, o.name, p.name",
     "price-asc": "p.price_cents ASC, p.name",
     "price-desc": "p.price_cents DESC, p.name",
 }
@@ -21,6 +23,7 @@ SORT_ORDERS = {
 # Ordered (key, label) pairs for the storefront sort control.
 SORT_OPTIONS = (
     ("name", "Name"),
+    ("origin", "Origin"),
     ("price-asc", "Price: low to high"),
     ("price-desc", "Price: high to low"),
 )
@@ -36,11 +39,29 @@ def list_categories():
     return db.execute("SELECT slug, name FROM categories ORDER BY name").fetchall()
 
 
-def list_products(category=None, query=None, sort=None):
+def list_origins():
+    db = get_db()
+    return db.execute(
+        "SELECT code, name, region FROM origins ORDER BY region, name"
+    ).fetchall()
+
+
+def normalize_origin(value):
+    """Return a known country code, or no filter for an untrusted value."""
+    if not value:
+        return None
+    row = get_db().execute(
+        "SELECT code FROM origins WHERE code = ?", (value,)
+    ).fetchone()
+    return row["code"] if row else None
+
+
+def list_products(category=None, query=None, origin=None, sort=None):
     sql = f"""
         SELECT {PRODUCT_COLUMNS}
         FROM products p
         JOIN categories c ON c.id = p.category_id
+        LEFT JOIN origins o ON o.id = p.origin_id
     """
     where, params = [], []
     if category:
@@ -50,6 +71,10 @@ def list_products(category=None, query=None, sort=None):
         where.append("(p.name LIKE ? OR p.summary LIKE ?)")
         like = f"%{query}%"
         params += [like, like]
+    origin = normalize_origin(origin)
+    if origin:
+        where.append("o.code = ?")
+        params.append(origin)
     if where:
         sql += " WHERE " + " AND ".join(where)
     sql += " ORDER BY " + SORT_ORDERS[normalize_sort(sort)]
@@ -62,6 +87,7 @@ def get_product(slug):
         SELECT {PRODUCT_COLUMNS}
         FROM products p
         JOIN categories c ON c.id = p.category_id
+        LEFT JOIN origins o ON o.id = p.origin_id
         WHERE p.slug = ?
         """,
         (slug,),
@@ -78,6 +104,7 @@ def get_products_by_id(ids):
         SELECT {PRODUCT_COLUMNS}
         FROM products p
         JOIN categories c ON c.id = p.category_id
+        LEFT JOIN origins o ON o.id = p.origin_id
         WHERE p.id IN ({marks})
         """,
         list(ids),

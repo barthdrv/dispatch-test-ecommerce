@@ -24,6 +24,9 @@
           <span class="tag tag-in">In stock</span>
         {% endif %}
         <span class="sku">SKU {{ product['sku'] }}</span>
+        {% if product['origin_code'] %}
+          <span class="sku">Made in <a href="{{ url_for('catalog.index', origin=product['origin_code']) }}">{{ product['origin_name'] }}</a></span>
+        {% endif %}
       </p>
 
       <form class="add-form" action="{{ url_for('cart.add') }}" method="post">

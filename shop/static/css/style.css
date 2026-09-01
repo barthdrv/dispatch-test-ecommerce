@@ -77,8 +77,10 @@ input:focus-visible, button:focus-visible, a:focus-visible {
 }
 .chip.is-active { background: var(--ink); border-color: var(--ink); color: #fff; }
 
+.origin-filters { margin-top: -12px; }
 .sorts { margin-top: -12px; align-items: center; }
-.sorts-label { color: var(--muted); font-size: .9rem; }
+.filters-label { color: var(--muted); font-size: .9rem; align-self: center; }
+.sorts select { width: auto; }
 
 .result-count { color: var(--muted); }
 
@@ -99,6 +101,8 @@ input:focus-visible, button:focus-visible, a:focus-visible {
 .summary { color: var(--muted); font-size: .9rem; margin: 0 0 10px; }
 .price { font-weight: 600; margin: 0; }
 .price-lg { font-size: 1.35rem; }
+.card-origin { color: var(--muted); font-size: .85rem; margin: -6px 16px 16px; }
+.card .card-origin a { display: inline; padding: 0; text-decoration: underline; }
 
 .tag { display: inline-block; font-size: .78rem; padding: 2px 8px; border-radius: 4px; }
 .tag-out { background: #f6e2de; color: var(--bad); }

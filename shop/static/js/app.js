@@ -8,6 +8,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  // Submit enhanced controls immediately while retaining their submit button.
+  document.querySelectorAll("[data-auto-submit]").forEach((control) => {
+    control.addEventListener("change", () => control.form.requestSubmit());
+  });
+
   // Dismiss flash messages on click.
   document.querySelectorAll(".flash").forEach((flash) => {
     flash.addEventListener("click", () => flash.remove());
