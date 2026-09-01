@@ -1,4 +1,6 @@
 """Read queries against the product catalog."""
+from flask import g
+
 from .db import get_db
 
 PRODUCT_COLUMNS = """
@@ -40,20 +42,18 @@ def list_categories():
 
 
 def list_origins():
-    db = get_db()
-    return db.execute(
-        "SELECT code, name, region FROM origins ORDER BY region, name"
-    ).fetchall()
+    if "catalog_origins" not in g:
+        g.catalog_origins = get_db().execute(
+            "SELECT code, name, region FROM origins ORDER BY region, name"
+        ).fetchall()
+    return g.catalog_origins
 
 
 def normalize_origin(value):
     """Return a known country code, or no filter for an untrusted value."""
     if not value:
         return None
-    row = get_db().execute(
-        "SELECT code FROM origins WHERE code = ?", (value,)
-    ).fetchone()
-    return row["code"] if row else None
+    return value if any(row["code"] == value for row in list_origins()) else None
 
 
 def list_products(category=None, query=None, origin=None, sort=None):
@@ -71,11 +71,10 @@ def list_products(category=None, query=None, origin=None, sort=None):
         where.append("(p.name LIKE ? OR p.summary LIKE ?)")
         like = f"%{query}%"
         params += [like, like]
+    origin = normalize_origin(origin)
     if origin:
-        where.append(
-            "(NOT EXISTS (SELECT 1 FROM origins WHERE code = ?) OR o.code = ?)"
-        )
-        params += [origin, origin]
+        where.append("o.code = ?")
+        params.append(origin)
     if where:
         sql += " WHERE " + " AND ".join(where)
     sql += " ORDER BY " + SORT_ORDERS[normalize_sort(sort)]
