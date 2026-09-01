@@ -10,6 +10,12 @@ def test_index_lists_products(client):
     assert b"Walnut Monitor Stand" in response.data
 
 
+def test_home_title_is_green(client):
+    stylesheet = client.get("/static/css/style.css")
+    assert stylesheet.status_code == 200
+    assert b".hero h1 { color: var(--ok);" in stylesheet.data
+
+
 def test_filter_by_category(client):
     response = client.get("/?category=kitchen")
     assert b"Cast Iron Skillet" in response.data

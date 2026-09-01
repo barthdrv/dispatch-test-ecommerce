@@ -67,7 +67,7 @@ input:focus-visible, button:focus-visible, a:focus-visible {
 
 /* Catalog ------------------------------------------------------------ */
 .hero { padding: 40px 0 8px; max-width: 34ch; }
-.hero h1 { font-size: 1.9rem; margin: 0 0 8px; }
+.hero h1 { color: var(--ok); font-size: 1.9rem; margin: 0 0 8px; }
 .hero p { color: var(--muted); margin: 0; }
 
 .filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 24px 0; }
