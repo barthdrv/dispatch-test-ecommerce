@@ -89,8 +89,11 @@ input:focus-visible, button:focus-visible, a:focus-visible {
   display: grid; gap: 18px;
   grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
 }
-.card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
-.card a { display: block; padding: 16px; text-decoration: none; color: inherit; height: 100%; }
+.card {
+  display: flex; flex-direction: column; background: var(--card);
+  border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden;
+}
+.card > a { display: block; flex: 1; padding: 16px; text-decoration: none; color: inherit; }
 .card:hover { border-color: var(--accent); }
 .card h2, .card h3 { font-size: 1rem; margin: 12px 0 4px; }
 .thumb, .detail-image {

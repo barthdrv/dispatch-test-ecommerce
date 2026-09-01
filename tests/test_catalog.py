@@ -40,9 +40,14 @@ def test_missing_product_is_404(client):
     assert client.get("/products/nope").status_code == 404
 
 
-def test_product_detail_shows_origin_only_when_known(client):
-    assert b"Made in" in client.get("/products/walnut-monitor-stand").data
-    assert b"United States" in client.get("/products/walnut-monitor-stand").data
+def test_origin_is_hidden_when_unknown_on_cards_and_detail(client):
+    body = client.get("/").data.decode()
+    cards = body.split('<li class="card">')[1:]
+    walnut = next(card for card in cards if "Walnut Monitor Stand" in card)
+    trowel = next(card for card in cards if "Folding Trowel" in card)
+    assert "Made in" in walnut
+    assert "United States" in walnut
+    assert "Made in" not in trowel
     assert b"Made in" not in client.get("/products/folding-trowel").data
 
 
