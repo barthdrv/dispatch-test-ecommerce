@@ -1,3 +1,9 @@
+import sqlite3
+
+from shop import create_app
+from shop.db import get_db, upgrade_db
+
+
 def test_index_lists_products(client):
     response = client.get("/")
     assert response.status_code == 200
@@ -179,5 +185,42 @@ def test_filter_state_round_trips_in_links_and_sort_form(client):
     assert b'name="origin" value="US"' in body
 
 
+def test_search_preserves_active_filters(client):
+    body = client.get("/?category=desk&origin=US&sort=price-desc").data
+    search = body.split(b'<form class="search"', 1)[1].split(b"</form>", 1)[0]
+    assert b'name="category" value="desk"' in search
+    assert b'name="origin" value="US"' in search
+    assert b'name="sort" value="price-desc"' in search
+
+
 def test_api_health(client):
     assert client.get("/api/health").get_json() == {"status": "ok"}
+
+
+def test_upgrade_db_preserves_existing_data_and_backfills_origins(tmp_path):
+    database = tmp_path / "legacy.sqlite"
+    with sqlite3.connect(database) as connection:
+        connection.executescript(
+            """
+            CREATE TABLE products (id INTEGER PRIMARY KEY, sku TEXT UNIQUE NOT NULL);
+            INSERT INTO products (sku) VALUES ('DSK-001');
+            CREATE TABLE orders (id INTEGER PRIMARY KEY, number TEXT NOT NULL);
+            INSERT INTO orders (number) VALUES ('CS-EXISTING');
+            """
+        )
+
+    app = create_app({"TESTING": True, "DATABASE": str(database)})
+    with app.app_context():
+        upgrade_db()
+        upgrade_db()
+        db = get_db()
+        product = db.execute(
+            """
+            SELECT o.code
+            FROM products p
+            LEFT JOIN origins o ON o.id = p.origin_id
+            WHERE p.sku = 'DSK-001'
+            """
+        ).fetchone()
+        assert product["code"] == "US"
+        assert db.execute("SELECT number FROM orders").fetchone()["number"] == "CS-EXISTING"

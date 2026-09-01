@@ -27,9 +27,10 @@ applications:
         pip install -r requirements.txt
       deploy: |
         set -ex
-        # Create and seed the catalog on first deploy only. init-db drops every
-        # table, so re-running it would wipe placed orders.
-        if [ ! -f "$DATABASE" ]; then
+        # Seed a new catalog; upgrade existing files without deleting orders.
+        if [ -f "$DATABASE" ]; then
+          flask --app shop:create_app upgrade-db
+        else
           flask --app shop:create_app init-db
         fi
 

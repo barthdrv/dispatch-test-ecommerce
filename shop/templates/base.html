@@ -12,6 +12,8 @@
       <a class="brand" href="{{ url_for('catalog.index') }}">Corner&nbsp;Shop</a>
       <form class="search" action="{{ url_for('catalog.index') }}" method="get" role="search">
         <input type="search" name="q" placeholder="Search products" value="{{ query or '' }}" aria-label="Search products">
+        {% if active_category %}<input type="hidden" name="category" value="{{ active_category }}">{% endif %}
+        {% if active_origin %}<input type="hidden" name="origin" value="{{ active_origin }}">{% endif %}
         {% if sort and sort != 'name' %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
         <button type="submit">Search</button>
       </form>
