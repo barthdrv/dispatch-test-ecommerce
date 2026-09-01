@@ -6,9 +6,8 @@ applications:
   app:
     type: python:3.14
 
-    # Backing space for the mount below.
-    disk: 512
-
+    # Disk for the mount below is a runtime resource on Upsun, not config:
+    #   upsun resources:set --disk app:512
     mounts:
       "/data":
         source: storage
