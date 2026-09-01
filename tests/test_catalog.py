@@ -45,5 +45,78 @@ def test_api_products(client):
     }
 
 
+def _slugs(payload):
+    return [p["slug"] for p in payload["products"]]
+
+
+def _prices(payload):
+    return [p["price_cents"] for p in payload["products"]]
+
+
+def test_api_sort_price_asc(client):
+    payload = client.get("/api/products?sort=price-asc").get_json()
+    prices = _prices(payload)
+    assert prices == sorted(prices)
+    assert payload["count"] == client.get("/api/products").get_json()["count"]
+
+
+def test_api_sort_price_desc(client):
+    payload = client.get("/api/products?sort=price-desc").get_json()
+    prices = _prices(payload)
+    assert prices == sorted(prices, reverse=True)
+    assert payload["count"] == client.get("/api/products").get_json()["count"]
+
+
+def test_api_sort_ties_broken_by_name(client):
+    payload = client.get("/api/products?sort=price-asc").get_json()
+    groups = {}
+    for product in payload["products"]:
+        groups.setdefault(product["price_cents"], []).append(product["name"])
+    for names in groups.values():
+        assert names == sorted(names)
+
+
+def test_api_category_and_sort(client):
+    payload = client.get("/api/products?category=kitchen&sort=price-desc").get_json()
+    assert payload["products"]
+    assert {p["category"] for p in payload["products"]} == {"kitchen"}
+    prices = _prices(payload)
+    assert prices == sorted(prices, reverse=True)
+
+
+def test_api_invalid_sort_falls_back(client):
+    response = client.get("/api/products?sort=bogus")
+    assert response.status_code == 200
+    assert _slugs(response.get_json()) == _slugs(client.get("/api/products").get_json())
+
+
+def test_index_sort_matches_api(client):
+    for sort in ("price-asc", "price-desc"):
+        expected = [
+            p["name"]
+            for p in client.get(f"/api/products?sort={sort}").get_json()["products"]
+        ]
+        body = client.get(f"/?sort={sort}").data.decode()
+        positions = [body.index(name) for name in expected]
+        assert positions == sorted(positions)
+
+
+def test_index_invalid_sort_is_ok(client):
+    response = client.get("/?sort=bogus")
+    assert response.status_code == 200
+    assert b"Walnut Monitor Stand" in response.data
+
+
+def test_sort_preserves_filters_in_links(client):
+    body = client.get("/?category=kitchen&sort=price-desc").data
+    assert b"sort=price-desc" in body
+    assert b"category=kitchen" in body
+
+    body = client.get("/?q=brass&sort=price-asc").data
+    assert b"sort=price-asc" in body
+    assert b'name="sort"' in body
+    assert b'value="price-asc"' in body
+
+
 def test_api_health(client):
     assert client.get("/api/health").get_json() == {"status": "ok"}

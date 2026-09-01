@@ -77,6 +77,9 @@ input:focus-visible, button:focus-visible, a:focus-visible {
 }
 .chip.is-active { background: var(--ink); border-color: var(--ink); color: #fff; }
 
+.sorts { margin-top: -12px; align-items: center; }
+.sorts-label { color: var(--muted); font-size: .9rem; }
+
 .result-count { color: var(--muted); }
 
 .grid {

@@ -30,6 +30,7 @@ def products():
     rows = catalog.list_products(
         category=request.args.get("category") or None,
         query=(request.args.get("q") or "").strip() or None,
+        sort=request.args.get("sort"),
     )
     return jsonify(products=[serialize(row) for row in rows], count=len(rows))
 
