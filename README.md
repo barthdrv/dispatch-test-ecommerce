@@ -99,3 +99,5 @@ tests/
 | `DATABASE` | `shop.sqlite` | SQLite file path |
 | `PORT` | `5000` | Dev server port |
 | `DEBUG` | `1` | Dev server reloader/debugger |
+
+End of the README
