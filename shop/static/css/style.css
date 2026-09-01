@@ -77,8 +77,10 @@ input:focus-visible, button:focus-visible, a:focus-visible {
 }
 .chip.is-active { background: var(--ink); border-color: var(--ink); color: #fff; }
 
+.origin-filters { margin-top: -12px; }
 .sorts { margin-top: -12px; align-items: center; }
-.sorts-label { color: var(--muted); font-size: .9rem; }
+.filters-label { color: var(--muted); font-size: .9rem; align-self: center; }
+.sorts select { width: auto; }
 
 .result-count { color: var(--muted); }
 
@@ -87,8 +89,11 @@ input:focus-visible, button:focus-visible, a:focus-visible {
   display: grid; gap: 18px;
   grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
 }
-.card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
-.card a { display: block; padding: 16px; text-decoration: none; color: inherit; height: 100%; }
+.card {
+  display: flex; flex-direction: column; background: var(--card);
+  border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden;
+}
+.card > a { display: block; flex: 1; padding: 16px; text-decoration: none; color: inherit; }
 .card:hover { border-color: var(--accent); }
 .card h2, .card h3 { font-size: 1rem; margin: 12px 0 4px; }
 .thumb, .detail-image {
@@ -99,6 +104,8 @@ input:focus-visible, button:focus-visible, a:focus-visible {
 .summary { color: var(--muted); font-size: .9rem; margin: 0 0 10px; }
 .price { font-weight: 600; margin: 0; }
 .price-lg { font-size: 1.35rem; }
+.card-origin { color: var(--muted); font-size: .85rem; margin: -6px 16px 16px; }
+.card .card-origin a { display: inline; padding: 0; text-decoration: underline; }
 
 .tag { display: inline-block; font-size: .78rem; padding: 2px 8px; border-radius: 4px; }
 .tag-out { background: #f6e2de; color: var(--bad); }

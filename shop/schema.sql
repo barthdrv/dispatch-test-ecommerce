@@ -1,6 +1,7 @@
 DROP TABLE IF EXISTS order_items;
 DROP TABLE IF EXISTS orders;
 DROP TABLE IF EXISTS products;
+DROP TABLE IF EXISTS origins;
 DROP TABLE IF EXISTS categories;
 
 CREATE TABLE categories (
@@ -9,9 +10,17 @@ CREATE TABLE categories (
     name  TEXT NOT NULL
 );
 
+CREATE TABLE origins (
+    id      INTEGER PRIMARY KEY AUTOINCREMENT,
+    code    TEXT UNIQUE NOT NULL,
+    name    TEXT NOT NULL,
+    region  TEXT NOT NULL
+);
+
 CREATE TABLE products (
     id           INTEGER PRIMARY KEY AUTOINCREMENT,
     category_id  INTEGER NOT NULL REFERENCES categories (id),
+    origin_id    INTEGER REFERENCES origins (id),
     sku          TEXT UNIQUE NOT NULL,
     slug         TEXT UNIQUE NOT NULL,
     name         TEXT NOT NULL,
@@ -24,6 +33,7 @@ CREATE TABLE products (
 );
 
 CREATE INDEX idx_products_category ON products (category_id);
+CREATE INDEX idx_products_origin ON products (origin_id);
 
 CREATE TABLE orders (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,

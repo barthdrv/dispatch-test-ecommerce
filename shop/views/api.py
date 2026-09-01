@@ -17,6 +17,15 @@ def serialize(product):
         "price_cents": product["price_cents"],
         "stock": product["stock"],
         "category": product["category_slug"],
+        "origin": (
+            {
+                "code": product["origin_code"],
+                "name": product["origin_name"],
+                "region": product["origin_region"],
+            }
+            if product["origin_code"]
+            else None
+        ),
     }
 
 
@@ -30,6 +39,7 @@ def products():
     rows = catalog.list_products(
         category=request.args.get("category") or None,
         query=(request.args.get("q") or "").strip() or None,
+        origin=request.args.get("origin") or None,
         sort=request.args.get("sort"),
     )
     return jsonify(products=[serialize(row) for row in rows], count=len(rows))

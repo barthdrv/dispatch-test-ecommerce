@@ -9,12 +9,17 @@ bp = Blueprint("catalog", __name__)
 def index():
     category = request.args.get("category") or None
     query = (request.args.get("q") or "").strip() or None
+    origin = catalog.normalize_origin(request.args.get("origin"))
     sort = catalog.normalize_sort(request.args.get("sort"))
     return render_template(
         "index.html",
-        products=catalog.list_products(category=category, query=query, sort=sort),
+        products=catalog.list_products(
+            category=category, query=query, origin=origin, sort=sort
+        ),
         categories=catalog.list_categories(),
+        origins=catalog.list_origins(),
         active_category=category,
+        active_origin=origin,
         query=query,
         sort=sort,
         sort_options=catalog.SORT_OPTIONS,
