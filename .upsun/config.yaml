@@ -1,26 +1,44 @@
-# Upsun configuration, generated using AI at: 2026-08-31T13:50:22.821Z
-# AI can make mistakes. Please modify this file to suit your needs.
+# Upsun configuration for Corner Shop (Flask + SQLite).
+#
+# The application directory is read-only at runtime, so the SQLite file has to
+# live on a writable mount. DATABASE points at it; shop/config.py reads that.
 applications:
   app:
     type: python:3.14
+
+    # Backing space for the mount below.
+    disk: 512
+
+    mounts:
+      "/data":
+        source: storage
+        source_path: data
+
+    variables:
+      env:
+        DATABASE: /app/data/shop.sqlite
+        # SECRET_KEY is deliberately not set here. Set it as a sensitive
+        # project variable instead:
+        #   upsun variable:create --level project --name env:SECRET_KEY \
+        #     --value "$(openssl rand -hex 32)" --sensitive true
 
     hooks:
       build: |
         set -ex
         pip install -r requirements.txt
-        # Export DATABASE_URL environment variable for database connection
-        echo >> .environment 'export DATABASE_URL="$DB_SCHEME://$DB_USERNAME:$DB_PASSWORD@$DB_HOST:$DB_PORT/$DB_PATH"'
+      deploy: |
+        set -ex
+        # Create and seed the catalog on first deploy only. init-db drops every
+        # table, so re-running it would wipe placed orders.
+        if [ ! -f "$DATABASE" ]; then
+          flask --app shop:create_app init-db
+        fi
 
     web:
+      upstream:
+        socket_family: unix
       commands:
-        start: python run.py
-
-    relationships:
-      database: {}
-
-services:
-  database:
-    type: postgresql:18
+        start: "gunicorn -w 4 -b unix:$SOCKET wsgi:app"
 
 routes:
   https://{default}/:
