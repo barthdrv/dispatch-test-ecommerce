@@ -28,7 +28,7 @@ gunicorn wsgi:app
 pytest
 ```
 
-27 tests covering the catalog, cart arithmetic, and the checkout flow. Each
+The test suite covers the catalog, cart arithmetic, and the checkout flow. Each
 test gets a fresh seeded SQLite file, so they can run in any order.
 
 ## Layout
@@ -60,7 +60,7 @@ tests/
 
 | Method | Path | Purpose |
 | --- | --- | --- |
-| GET | `/` | Catalog, with `?category=` and `?q=` filters |
+| GET | `/` | Catalog, with `?category=`, `?q=`, `?origin=`, and `?sort=` controls |
 | GET | `/products/<slug>` | Product detail |
 | GET | `/cart/` | Cart contents |
 | POST | `/cart/add` | Add a product by slug |

@@ -71,10 +71,11 @@ def list_products(category=None, query=None, origin=None, sort=None):
         where.append("(p.name LIKE ? OR p.summary LIKE ?)")
         like = f"%{query}%"
         params += [like, like]
-    origin = normalize_origin(origin)
     if origin:
-        where.append("o.code = ?")
-        params.append(origin)
+        where.append(
+            "(NOT EXISTS (SELECT 1 FROM origins WHERE code = ?) OR o.code = ?)"
+        )
+        params += [origin, origin]
     if where:
         sql += " WHERE " + " AND ".join(where)
     sql += " ORDER BY " + SORT_ORDERS[normalize_sort(sort)]
