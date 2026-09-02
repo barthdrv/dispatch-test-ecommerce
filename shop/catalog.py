@@ -1,6 +1,7 @@
-"""Read queries against the product catalog."""
+"""Queries against the product catalog."""
 from flask import g
 
+from . import forms
 from .db import get_db
 
 PRODUCT_COLUMNS = """
@@ -39,6 +40,13 @@ def normalize_sort(value):
 def list_categories():
     db = get_db()
     return db.execute("SELECT slug, name FROM categories ORDER BY name").fetchall()
+
+
+def list_category_choices():
+    """Categories with their ids, for the "list an item" select."""
+    return get_db().execute(
+        "SELECT id, slug, name FROM categories ORDER BY name"
+    ).fetchall()
 
 
 def list_origins():
@@ -110,3 +118,88 @@ def get_products_by_id(ids):
         list(ids),
     ).fetchall()
     return {row["id"]: row for row in rows}
+
+
+# Write queries -------------------------------------------------------------
+
+# Fixed statements, selected by key, for the "is this value taken?" lookups.
+TAKEN_QUERIES = {
+    "slug": "SELECT slug AS value FROM products WHERE slug = ? OR slug LIKE ?",
+    "sku": "SELECT sku AS value FROM products WHERE sku = ? OR sku LIKE ?",
+}
+
+
+def _taken(column, base):
+    """Existing values in ``column`` equal to ``base`` or a ``base-N`` variant."""
+    rows = get_db().execute(TAKEN_QUERIES[column], (base, f"{base}-%")).fetchall()
+    return {row["value"] for row in rows}
+
+
+def slugify(name):
+    """A URL-safe slug for ``name``, de-duplicated with a -2, -3 suffix."""
+    base = forms.slug_base(name) or "item"
+    taken = _taken("slug", base)
+    if base not in taken:
+        return base
+    suffix = 2
+    while f"{base}-{suffix}" in taken:
+        suffix += 1
+    return f"{base}-{suffix}"
+
+
+def _unique_sku(base):
+    """Turn a SKU prefix into a free SKU, e.g. "CER" -> "CER-001"."""
+    taken = _taken("sku", base)
+    number = 1
+    while f"{base}-{number:03d}" in taken:
+        number += 1
+    return f"{base}-{number:03d}"
+
+
+def sku_exists(sku):
+    """Whether a product already uses ``sku``."""
+    row = get_db().execute("SELECT 1 FROM products WHERE sku = ?", (sku,)).fetchone()
+    return row is not None
+
+
+def create_product(
+    category_id,
+    name,
+    summary,
+    description,
+    price_cents,
+    stock,
+    sku=None,
+    image=None,
+    origin_id=None,
+):
+    """Insert a product, returning it in the same shape as :func:`get_product`.
+
+    A blank ``sku`` or ``image`` is derived from the name; the slug is always
+    generated and de-duplicated. Values are expected to be validated already
+    (see :mod:`shop.forms`) — the schema's constraints are only a backstop.
+    """
+    slug = slugify(name)
+    db = get_db()
+    db.execute(
+        """
+        INSERT INTO products
+            (category_id, origin_id, sku, slug, name, summary, description,
+             price_cents, stock, image)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            category_id,
+            origin_id,
+            sku or _unique_sku(forms.default_sku(name)),
+            slug,
+            name,
+            summary,
+            description,
+            price_cents,
+            stock,
+            image or forms.default_image(name),
+        ),
+    )
+    db.commit()
+    return get_product(slug)

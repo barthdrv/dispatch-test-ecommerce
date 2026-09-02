@@ -17,6 +17,7 @@
         {% if sort and sort != 'name' %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
         <button type="submit">Search</button>
       </form>
+      <a class="nav-link {{ 'is-active' if request.endpoint == 'sell.new' }}" href="{{ url_for('sell.new') }}">List an item</a>
       <a class="cart-link" href="{{ url_for('cart.show') }}">
         Cart <span class="badge">{{ cart_count() }}</span>
       </a>
