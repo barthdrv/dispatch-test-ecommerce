@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}List an item — Corner Shop{% endblock %}
+{% block content %}
+  <h1>List an item</h1>
+
+  <form class="checkout-form" action="{{ url_for('sell.new') }}" method="post" novalidate>
+    <fieldset>
+      <legend>What are you selling?</legend>
+
+      <p class="field {{ 'has-error' if errors.get('name') }}">
+        <label for="name">Name</label>
+        <input id="name" name="name" type="text" value="{{ values.get('name', '') }}">
+        {% if errors.get('name') %}<span class="error">{{ errors['name'] }}</span>{% endif %}
+      </p>
+
+      <p class="field {{ 'has-error' if errors.get('category') }}">
+        <label for="category">Category</label>
+        <select id="category" name="category">
+          <option value="">Choose a category</option>
+          {% for category in categories %}
+            <option value="{{ category['id'] }}" {{ 'selected' if values.get('category') == category['id']|string }}>{{ category['name'] }}</option>
+          {% endfor %}
+        </select>
+        {% if errors.get('category') %}<span class="error">{{ errors['category'] }}</span>{% endif %}
+      </p>
+
+      <p class="field {{ 'has-error' if errors.get('price') }}">
+        <label for="price">Price in dollars</label>
+        <input id="price" name="price" type="text" inputmode="decimal"
+               placeholder="12.50" value="{{ values.get('price', '') }}">
+        {% if errors.get('price') %}<span class="error">{{ errors['price'] }}</span>{% endif %}
+      </p>
+
+      <p class="field {{ 'has-error' if errors.get('stock') }}">
+        <label for="stock">Stock</label>
+        <input id="stock" name="stock" type="text" inputmode="numeric"
+               value="{{ values.get('stock', '') }}">
+        {% if errors.get('stock') %}<span class="error">{{ errors['stock'] }}</span>{% endif %}
+      </p>
+
+      <p class="field {{ 'has-error' if errors.get('summary') }}">
+        <label for="summary">Summary</label>
+        <textarea id="summary" name="summary" rows="2">{{ values.get('summary', '') }}</textarea>
+        {% if errors.get('summary') %}<span class="error">{{ errors['summary'] }}</span>{% endif %}
+      </p>
+
+      <p class="field {{ 'has-error' if errors.get('description') }}">
+        <label for="description">Description</label>
+        <textarea id="description" name="description" rows="6">{{ values.get('description', '') }}</textarea>
+        {% if errors.get('description') %}<span class="error">{{ errors['description'] }}</span>{% endif %}
+      </p>
+
+      <p class="field {{ 'has-error' if errors.get('sku') }}">
+        <label for="sku">SKU</label>
+        <input id="sku" name="sku" type="text" value="{{ values.get('sku', '') }}">
+        {% if errors.get('sku') %}<span class="error">{{ errors['sku'] }}</span>{% endif %}
+      </p>
+
+      <p class="field {{ 'has-error' if errors.get('image') }}">
+        <label for="image">Image code</label>
+        <input id="image" name="image" type="text" maxlength="2"
+               placeholder="CM" value="{{ values.get('image', '') }}">
+        {% if errors.get('image') %}<span class="error">{{ errors['image'] }}</span>{% endif %}
+      </p>
+    </fieldset>
+
+    <p class="note">SKU and image code are optional — leave them blank and they
+      are generated from the name. Category creation is not part of this form.</p>
+    <button type="submit" class="btn btn-primary">List it</button>
+  </form>
+{% endblock %}
