@@ -57,6 +57,53 @@ def test_origin_is_hidden_when_unknown_on_cards_and_detail(client):
     assert b"Made in" not in client.get("/products/folding-trowel").data
 
 
+def _set_stock(app, slug, stock):
+    with app.app_context():
+        db = get_db()
+        db.execute("UPDATE products SET stock = ? WHERE slug = ?", (stock, slug))
+        db.commit()
+
+
+def _card(body, name):
+    cards = body.split('<li class="card">')[1:]
+    return next(card for card in cards if name in card)
+
+
+def test_card_shows_low_stock_badge(app, client):
+    _set_stock(app, "walnut-monitor-stand", 3)
+    card = _card(client.get("/").data.decode(), "Walnut Monitor Stand")
+    assert "Only 3 left" in card
+    assert "tag-low" in card
+    assert "Sold out" not in card
+
+
+def test_card_shows_low_stock_badge_at_threshold(app, client):
+    _set_stock(app, "walnut-monitor-stand", 8)
+    assert "Only 8 left" in _card(client.get("/").data.decode(), "Walnut Monitor Stand")
+
+
+def test_card_is_quiet_above_threshold(app, client):
+    for stock in (9, 10):
+        _set_stock(app, "walnut-monitor-stand", stock)
+        card = _card(client.get("/").data.decode(), "Walnut Monitor Stand")
+        assert f"Only {stock} left" not in card
+        assert "Sold out" not in card
+
+
+def test_sold_out_card_keeps_sold_out_badge(app, client):
+    _set_stock(app, "walnut-monitor-stand", 0)
+    card = _card(client.get("/").data.decode(), "Walnut Monitor Stand")
+    assert "Sold out" in card
+    assert "Only 0 left" not in card
+
+
+def test_related_card_shows_low_stock_badge(app, client):
+    _set_stock(app, "walnut-monitor-stand", 2)
+    body = client.get("/products/brass-desk-lamp").data.decode()
+    related = body.split('<section class="related">', 1)[1]
+    assert "Only 2 left" in _card(related, "Walnut Monitor Stand")
+
+
 def test_sold_out_product_cannot_be_added(client):
     response = client.post(
         "/cart/add", data={"slug": "ceramic-pen-cup"}, follow_redirects=True
