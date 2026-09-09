@@ -57,6 +57,33 @@ def test_origin_is_hidden_when_unknown_on_cards_and_detail(client):
     assert b"Made in" not in client.get("/products/folding-trowel").data
 
 
+def test_low_stock_card_shows_only_n_left(client):
+    body = client.get("/").data.decode()
+    cards = body.split('<li class="card">')[1:]
+    lamp = next(card for card in cards if "Brass Desk Lamp" in card)
+    assert '<span class="tag tag-low">Only 8 left</span>' in lamp
+    # The same badge shows on the related cards of a product detail page.
+    related = client.get("/products/canvas-cable-roll").data.decode()
+    assert '<span class="tag tag-low">Only 8 left</span>' in related
+
+
+def test_sold_out_card_shows_sold_out_and_not_only_zero_left(client):
+    body = client.get("/").data.decode()
+    cards = body.split('<li class="card">')[1:]
+    cup = next(card for card in cards if "Ceramic Pen Cup" in card)
+    assert '<span class="tag tag-out">Sold out</span>' in cup
+    assert "Only 0 left" not in cup
+
+
+def test_card_has_no_badge_at_or_above_threshold(client):
+    body = client.get("/").data.decode()
+    cards = body.split('<li class="card">')[1:]
+    kettle = next(card for card in cards if "Pour-Over Kettle" in card)
+    assert "tag-low" not in kettle
+    assert "tag-out" not in kettle
+    assert "tag-in" not in kettle
+
+
 def test_sold_out_product_cannot_be_added(client):
     response = client.post(
         "/cart/add", data={"slug": "ceramic-pen-cup"}, follow_redirects=True
