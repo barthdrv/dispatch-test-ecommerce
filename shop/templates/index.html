@@ -50,7 +50,8 @@
             <p class="summary">{{ product['summary'] }}</p>
             <p class="price">
               {{ money(product['price_cents']) }}
-              {% if product['stock'] == 0 %}<span class="tag tag-out">Sold out</span>{% endif %}
+              {% if product['stock'] == 0 %}<span class="tag tag-out">Sold out</span>
+              {% elif product['stock'] < 10 %}<span class="tag tag-low">Only {{ product['stock'] }} left</span>{% endif %}
             </p>
           </a>
           {% if product['origin_code'] %}
